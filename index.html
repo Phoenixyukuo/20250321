@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎端</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            margin: 50px auto;
+            width: 80%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        textarea, input {
+            width: 100%;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #28a745;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>抽獎端</h2>
+        <textarea id="names" placeholder="輸入 20 位參賽者，每行一位"></textarea>
+        <textarea id="prizes" placeholder="輸入 10 個獎項及 3 個加碼獎，每行一個"></textarea>
+        <div class="input-area">
+            <label>新增加碼獎</label>
+            <input type="text" id="extraPrize" placeholder="輸入加碼獎名稱">
+            <button onclick="addExtraPrize()">新增</button>
+        </div>
+        <button onclick="drawNextPrize()">抽取下一個獎項</button>
+        <button onclick="resetDraw()">清除結果</button>
+        <button onclick="window.location.href='result.html'">查看中獎名單</button>
+        <div id="winner"></div>
+    </div>
+    <script>
+        let names = [];
+        let prizes = [];
+        let winners = [];
+        let currentPrizeIndex = 0;
+
+        function drawNextPrize() {
+            if (names.length === 0 || prizes.length === 0) {
+                names = document.getElementById('names').value.trim().split('\\n').map(n => n.trim()).filter(n => n);
+                prizes = document.getElementById('prizes').value.trim().split('\\n').map(p => p.trim()).filter(p => p);
+
+                if (names.length !== 20) {
+                    alert("請輸入剛好 20 位參賽者！");
+                    return;
+                }
+                if (prizes.length < 13) {
+                    alert("請至少輸入 13 個獎項！");
+                    return;
+                }
+            }
+
+            if (currentPrizeIndex >= prizes.length) {
+                alert("所有獎項已抽取完畢！");
+                return;
+            }
+
+            let availableNames = names.filter(n => !winners.includes(n));
+            if (availableNames.length === 0) {
+                alert("沒有剩餘的參賽者！");
+                return;
+            }
+
+            let winner = availableNames[Math.floor(Math.random() * availableNames.length)];
+            winners.push({ prize: prizes[currentPrizeIndex], name: winner });
+
+            document.getElementById('winner').innerHTML = `<p>${prizes[currentPrizeIndex]}: ${winner}</p>`;
+            localStorage.setItem('winners', JSON.stringify(winners));
+
+            currentPrizeIndex++;
+        }
+
+        function resetDraw() {
+            localStorage.removeItem('winners');
+            winners = [];
+            currentPrizeIndex = 0;
+            document.getElementById('winner').innerHTML = "";
+            alert("抽獎結果已清除，可以重新抽獎！");
+        }
+
+        function addExtraPrize() {
+            let extraPrize = document.getElementById("extraPrize").value.trim();
+            if (extraPrize) {
+                prizes.push(extraPrize);
+                document.getElementById("prizes").value += `\\n${extraPrize}`;
+                alert(`已新增加碼獎：${extraPrize}`);
+                document.getElementById("extraPrize").value = "";
+            } else {
+                alert("請輸入加碼獎名稱！");
+            }
+        }
+    </script>
+</body>
+</html>
+
